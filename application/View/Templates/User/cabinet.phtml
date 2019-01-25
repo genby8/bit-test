@@ -1,0 +1,8 @@
+<?php
+
+/* @var $user \Application\Model\Entity\User */
+
+?>
+
+Ваш email: <?= $user->email ?>
+<a href="<?= $this->getHelper('url')('logout') ?>" type="button" class="btn btn-primary m-3">logout</a>
