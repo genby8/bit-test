@@ -3,7 +3,9 @@
 namespace Application\Controller;
 
 use Application\ControllerAction;
+use Application\Form\Account\TakeBalance;
 use Application\Form\User\Login;
+use Application\Model\AccountTransaction;
 use Application\Model\User;
 use Application\View\Model\ViewModel;
 
@@ -24,7 +26,7 @@ class UserController extends ControllerAction
                 if ($userModel->login($data['email'], $data['password'])) {
                     $this->redirectToRoute('cabinet');
                 } else {
-                    $errors = ['Данные неверные'];
+                    $errors[] = 'Данные неверные';
                 }
             } else {
                 $errors = $form->getMessagesError();
@@ -51,8 +53,23 @@ class UserController extends ControllerAction
         if (!$userModel->isAuth()) {
             $this->redirectToRoute('login');
         }
-        $user = (new User())->getCurrentUser();
-        $viewModel = new ViewModel(['user' => $user]);
+        $user = $userModel->getCurrentUser();
+        $form = new TakeBalance();
+        $errors = [];
+        if ($this->isMethod('post')) {
+            $form->setData($_POST);
+            if ($form->isValid()) {
+                $data = $form->getData();
+                if ((new AccountTransaction())->takeMoney($user, $data['amount'])) {
+                    $this->redirectToRoute('cabinet');
+                }
+                $errors[] = 'Что то пошло не так, возможно не хватает баланса';
+            } else {
+                $errors = $form->getMessagesError();
+            }
+        }
+        $balance = (new AccountTransaction())->getBalance($user);
+        $viewModel = new ViewModel(['user' => $user, 'form' => $form, 'errors' => $errors, 'balance' => $balance]);
         $viewModel->setTemplate('user/cabinet');
         return $viewModel;
     }

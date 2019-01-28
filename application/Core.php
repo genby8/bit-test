@@ -32,10 +32,11 @@ class Core
     public function run()
     {
         $params = Route::getInstance()->route($_SERVER['REQUEST_URI']);
-        SessionWrapper::start();
         $controllerName = $params['controller'];
         $actionName = $params['action'] . 'Action';
-        $controller = new $controllerName();
-        (new View())->render($controller->$actionName());
+        SessionWrapper::start();
+        $viewModel = (new $controllerName())->$actionName();
+        SessionWrapper::writeClose();
+        (new View())->render($viewModel);
     }
 }

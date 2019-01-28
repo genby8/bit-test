@@ -65,6 +65,14 @@ return [
                     'stream' => LOGS_PATH . '/auth.log'
                 ]
             ]
-        ]
+        ],
+        'money' => [
+            'writer' => [
+                'name' => StreamHandler::class,
+                'options' => [
+                    'stream' => LOGS_PATH . '/transfer.log'
+                ]
+            ]
+        ],
     ]
 ];

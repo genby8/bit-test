@@ -4,7 +4,10 @@
   "type": "project",
   "require": {
     "php": ">=7.2",
-    "monolog/monolog": "^1.24"
+    "ext-bcmath": "*",
+    "ext-pdo": "*",
+    "monolog/monolog": "^1.24",
+    "respect/validation": "^1.1"
   },
   "autoload": {
     "psr-4": {

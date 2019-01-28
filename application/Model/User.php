@@ -2,19 +2,18 @@
 
 namespace Application\Model;
 
-use Application\Db\Db;
 use Application\Logger\Logger;
 use Application\Model\Entity\User as EntityUser;
 use Application\Session\SessionWrapper;
+use Psr\Log\LoggerInterface;
 
-class User
+class User extends BaseModel
 {
 
     /**
      * @var string
      */
-    private $userTableName = 'users';
-    private $loggerAuthName = 'auth';
+    protected $tableName = 'users';
 
     /**
      * Получить теукщего пользователя
@@ -75,8 +74,7 @@ class User
      */
     public function getUser($email): ?EntityUser
     {
-        $conn = Db::getConnect();
-        $sth = $conn->prepare('SELECT * FROM ' . $this->getTableName() . ' WHERE email = ? LIMIT 1');
+        $sth = $this->getPDO()->prepare('SELECT * FROM ' . $this->getTableName() . ' WHERE email = ? LIMIT 1');
         $sth->execute([$email]);
         $users = $sth->fetchAll(\PDO::FETCH_ASSOC);
         if (!empty($users)) {
@@ -105,16 +103,11 @@ class User
     }
 
     /**
-     * @return string
+     * @return LoggerInterface
      */
-    public function getTableName(): string
+    public function getLoggerAuth(): LoggerInterface
     {
-        return $this->userTableName;
-    }
-
-    public function getLoggerAuth()
-    {
-        return Logger::getLogger($this->loggerAuthName);
+        return Logger::getLogger('auth');
     }
 
 }

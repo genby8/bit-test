@@ -4,6 +4,9 @@ namespace Application\Model;
 
 class Entity
 {
+    /**
+     * @var array
+     */
     protected $fields = [];
 
     public function __construct(array $data = null)
@@ -14,6 +17,9 @@ class Entity
         return $this;
     }
 
+    /**
+     * @param array $data
+     */
     public function setData(array $data)
     {
         foreach ($this->fields as $fieldName => $fieldValue) {
@@ -21,16 +27,36 @@ class Entity
         }
     }
 
+    /**
+     * @return array
+     */
+    public function getData()
+    {
+        return $this->fields;
+    }
+
+    /**
+     * @param string $name
+     * @return mixed
+     */
     public function __get(string $name)
     {
         return $this->getField($name);
     }
 
+    /**
+     * @param string $name
+     * @param $value
+     */
     public function __set(string $name, $value)
     {
         $this->setField($name, $value);
     }
 
+    /**
+     * @param string $name
+     * @return mixed
+     */
     protected function getField(string $name)
     {
         if ($this->isFieldExists($name)) {
@@ -40,6 +66,10 @@ class Entity
         }
     }
 
+    /**
+     * @param string $name
+     * @param $value
+     */
     protected function setField(string $name, $value)
     {
         if ($this->isFieldExists($name)) {
@@ -49,11 +79,19 @@ class Entity
         }
     }
 
+    /**
+     * @param string $name
+     * @return bool
+     */
     public function isFieldExists(string $name): bool
     {
         return array_key_exists($name, $this->fields);
     }
 
+    /**
+     * @param string $name
+     * @return bool
+     */
     public function __isset(string $name): bool
     {
         return $this->isFieldExists($name);

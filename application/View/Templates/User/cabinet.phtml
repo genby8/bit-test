@@ -1,8 +1,29 @@
 <?php
 
 /* @var $user \Application\Model\Entity\User */
+/* @var $form \Application\Form\Account\TakeBalance */
 
 ?>
+<div class="alert alert-primary" role="alert">
+    Ваш email: <?= $user->email ?>
+    <a href="<?= $this->getHelper('url')('logout') ?>" type="button" class="btn btn-primary ml-3">logout</a>
+</div>
 
-Ваш email: <?= $user->email ?>
-<a href="<?= $this->getHelper('url')('logout') ?>" type="button" class="btn btn-primary m-3">logout</a>
+<div class="alert alert-primary" role="alert">
+    Ваш баланс: <?= $balance ?>
+</div>
+<form action="<?= $this->getHelper('url')('cabinet') ?>" method="POST" class="p-3 js-form">
+    <div class="form-group">
+        <label for="element_email">Сумма</label>
+        <input name="amount" type="text" class="form-control" id="element_amount" placeholder="Укажите сумму"
+               value="<?= $form->getValue('amount') ?>">
+    </div>
+    <?php if (!empty($errors)) { ?>
+        <?php foreach ($errors as $errorMessage) { ?>
+            <div class="alert alert-danger" role="alert">
+                <?= $errorMessage ?>
+            </div>
+        <?php } ?>
+    <?php } ?>
+    <button type="submit" class="btn btn-primary m-3">Вывести</button>
+</form>

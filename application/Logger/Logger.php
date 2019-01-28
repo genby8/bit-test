@@ -3,21 +3,23 @@
 namespace Application\Logger;
 
 use Application\Config;
+use Monolog\Processor\UidProcessor;
 use Monolog\Processor\WebProcessor;
+use Psr\Log\LoggerInterface;
 
 class Logger
 {
 
     /**
-     * @var null|self
+     * @var array
      */
     private static $loggers = [];
 
     /**
-     * @param $name
-     * @return \Monolog\Logger
+     * @param string $name
+     * @return LoggerInterface
      */
-    public static function getLogger($name): \Monolog\Logger
+    public static function getLogger(string $name): LoggerInterface
     {
         if (isset(self::$loggers[$name])) {
             return self::$loggers[$name];
@@ -28,6 +30,7 @@ class Logger
         $logger = new \Monolog\Logger($name);
         $logger->pushHandler(new $writerClass($data['writer']['options']['stream']));
         $logger->pushProcessor(new WebProcessor());
+        $logger->pushProcessor(new UidProcessor());
         self::$loggers[$name] = $logger;
         return $logger;
     }
