@@ -23,9 +23,7 @@ class SessionWrapper
 
     public static function destroy()
     {
-        if (!self::sessionExists()) {
-            return;
-        }
+        self::start();
         session_destroy();
     }
 
@@ -39,38 +37,34 @@ class SessionWrapper
 
     public static function getData($key)
     {
-        if (!self::sessionExists()) {
-            return null;
-        }
+        self::start();
         if (isset($_SESSION[$key])) {
             return $_SESSION[$key];
         }
+        self::writeClose();
     }
 
     public static function setData($key, $value)
     {
-        if (!self::sessionExists()) {
-            return;
-        }
+        self::start();
         $_SESSION[$key] = $value;
+        self::writeClose();
     }
 
     public static function unsetData($key)
     {
-        if (!self::sessionExists()) {
-            return;
-        }
+        self::start();
         if (isset($_SESSION[$key])) {
             unset($_SESSION[$key]);
         }
+        self::writeClose();
     }
 
     public static function regenerateId()
     {
-        if (!self::sessionExists()) {
-            return;
-        }
+        self::start();
         session_regenerate_id();
+        self::writeClose();
     }
 
 }
