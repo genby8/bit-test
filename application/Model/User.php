@@ -52,6 +52,7 @@ class User extends BaseModel
         $user = $this->getUser($email);
         if (!is_null($user) && $user->password === $this->getHashPassword($password, $user->salt)) {
             SessionWrapper::setData('email', $user->email);
+            SessionWrapper::regenerateId();
             $this->getLoggerAuth()->info('Попытка залогиниться. Успех.', ['email' => $email]);
             return true;
         }

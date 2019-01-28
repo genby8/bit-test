@@ -65,4 +65,12 @@ class SessionWrapper
         }
     }
 
+    public static function regenerateId()
+    {
+        if (!self::sessionExists()) {
+            return;
+        }
+        session_regenerate_id();
+    }
+
 }
