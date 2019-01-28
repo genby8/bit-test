@@ -18,15 +18,21 @@ class AccountTransaction extends BaseModel
 
     /**
      * @param User $user
+     * @param bool $forUpdate
      * @return string
      */
-    public function getBalance(User $user): string
+    public function getBalance(User $user, $forUpdate = false): string
     {
-        $sth = $this->getPDO()->prepare('SELECT SUM(amount) as sum  FROM ' . $this->getTableName() . ' WHERE uid = ? ORDER BY id ASC');
+        $q = 'SELECT SUM(amount) as sum  FROM ' . $this->getTableName() . ' WHERE uid = ? ORDER BY id ASC';
+        $q .= ($forUpdate) ? ' FOR UPDATE ' : '';
+        $sth = $this->getPDO()->prepare($q);
         $sth->execute([$user->id]);
-        $result = $sth->fetchColumn();
-        if (!is_null($result)) {
-            return $result;
+        $amount = $sth->fetchColumn();
+        if (!is_null($amount)) {
+            if (bccomp(0, $amount, $this->bcscale) === 1) {
+                $this->getLoggerMoney()->alert('Отрицательный баланс', ['amount' => $amount, 'uid' => $user->id]);
+            }
+            return $amount;
         }
         return '0';
     }
@@ -57,7 +63,7 @@ class AccountTransaction extends BaseModel
         $this->getLoggerMoney()->info('Попытка вывести средства. Start.', ['amount' => $amount, 'uid' => $user->id]);
         try {
             $conn->beginTransaction();
-            $balance = $this->getBalance($user);
+            $balance = $this->getBalance($user, true);
             if (!$this->hasEnoughMoney($balance, $amount)) {
                 return false;
             }
