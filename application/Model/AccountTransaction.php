@@ -18,39 +18,6 @@ class AccountTransaction extends BaseModel
 
     /**
      * @param User $user
-     * @param bool $forUpdate
-     * @return string
-     */
-    public function getBalance(User $user, $forUpdate = false): string
-    {
-        $q = 'SELECT SUM(amount) as sum  FROM ' . $this->getTableName() . ' WHERE uid = ? ORDER BY id ASC';
-        $q .= ($forUpdate) ? ' FOR UPDATE ' : '';
-        $sth = $this->getPDO()->prepare($q);
-        $sth->execute([$user->id]);
-        $amount = $sth->fetchColumn();
-        if (!is_null($amount)) {
-            if (bccomp(0, $amount, $this->bcscale) === 1) {
-                $this->getLoggerMoney()->alert('Отрицательный баланс', ['amount' => $amount, 'uid' => $user->id]);
-            }
-            return $amount;
-        }
-        return '0';
-    }
-
-    /**
-     * @param User $user
-     * @param string $amount
-     */
-    public function addMoney(User $user, string $amount)
-    {
-        $transaction = new EntityAccountTransaction();
-        $transaction->uid = $user->id;
-        $transaction->amount = $amount;
-        $this->save($transaction);
-    }
-
-    /**
-     * @param User $user
      * @param string $amount
      * @return bool
      */
@@ -61,12 +28,15 @@ class AccountTransaction extends BaseModel
         $transaction->amount = -$amount;
         $conn = $this->getPDO();
         $this->getLoggerMoney()->info('Попытка вывести средства. Start.', ['amount' => $amount, 'uid' => $user->id]);
+        $accountModel = new Account();
+        $conn->beginTransaction();
         try {
-            $conn->beginTransaction();
-            $balance = $this->getBalance($user, true);
-            if (!$this->hasEnoughMoney($balance, $amount)) {
-                return false;
+            $account = $accountModel->getBalance($user, true);
+            if (!$this->hasEnoughMoney($account->balance, $amount)) {
+                throw new \Error();
             }
+            $account->balance = bcsub($account->balance, $amount, $this->bcscale);
+            $accountModel->save($account);
             $this->save($transaction);
             $conn->commit();
             $this->getLoggerMoney()->info('Попытка вывести средства. successful.',
@@ -85,7 +55,7 @@ class AccountTransaction extends BaseModel
      * @param $amount
      * @return bool
      */
-    private function hasEnoughMoney(string $balance, string $amount)
+    private function hasEnoughMoney(string $balance, string $amount): bool
     {
         if (bccomp($amount, $balance, $this->bcscale) === 1) {
             return false;
@@ -98,11 +68,8 @@ class AccountTransaction extends BaseModel
      */
     private function save(EntityAccountTransaction $transaction)
     {
-        $data = $transaction->getData();
-        unset($data['id']);
-        unset($data['datetime']);
         $sql = 'INSERT INTO ' . $this->getTableName() . ' (uid, amount) VALUES (:uid, :amount)';
-        $this->getPDO()->prepare($sql)->execute($data);
+        $this->getPDO()->prepare($sql)->execute(['uid' => $transaction->uid, 'amount' => $transaction->amount]);
     }
 
     /**

@@ -5,8 +5,10 @@ namespace Application\Controller;
 use Application\ControllerAction;
 use Application\Form\Account\TakeBalance;
 use Application\Form\User\Login;
+use Application\Model\Account;
 use Application\Model\AccountTransaction;
 use Application\Model\User;
+use Application\Session\SessionWrapper;
 use Application\View\Model\ViewModel;
 
 class UserController extends ControllerAction
@@ -68,8 +70,12 @@ class UserController extends ControllerAction
                 $errors = $form->getMessagesError();
             }
         }
-        $balance = (new AccountTransaction())->getBalance($user);
-        $viewModel = new ViewModel(['user' => $user, 'form' => $form, 'errors' => $errors, 'balance' => $balance]);
+        $viewModel = new ViewModel([
+            'user' => $user,
+            'form' => $form,
+            'errors' => $errors,
+            'account' => (new Account())->getBalance($user)
+        ]);
         $viewModel->setTemplate('user/cabinet');
         return $viewModel;
     }
